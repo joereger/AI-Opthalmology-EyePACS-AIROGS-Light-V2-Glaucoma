@@ -20,7 +20,7 @@ model_name: mobilenetv3
 # Default Training Parameters (can be overridden by phase-specific config)
 # These defaults are based on the reference notebook
 batch_size: 4
-num_epochs: 6 # Default number of epochs from first training run in notebook was 6
+num_epochs: 1 # Default number of epochs from first training run in notebook was 6
 learning_rate: 0.001
 optimizer: Adam
 scheduler: StepLR
