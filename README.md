@@ -25,11 +25,13 @@ Each phase can be executed independently via the command-line interface.
 *   **Raw Data:** Expected at `data/01_raw/eyepac-light-v2-512-jpg/`. This directory should contain `train/`, `validation/`, and `test/` subdirectories, each with `NRG/` (Non-Referable Glaucoma) and `RG/` (Referable Glaucoma) subdirectories containing the JPEG images. This structure is the source of truth for labels and splits.
 *   **Conformed Data:** During Phase 02, a run-specific copy of the raw data is created in `data/02_conformed_to_imagefolder/{run_id}/`, maintaining the `ImageFolder` structure. This copied data is used for training and evaluation.
 *   **Trained Models:** Models are saved in `data/03_train_model/{run_id}/mobilenetv3/` along with model metadata.
-*   **Inference Input:** New images for prediction should be placed in `data/04_inference_input/{batch_id}/`.
-*   **Outputs:**
-    *   Evaluation results are saved in `results/mobilenetv3/{run_id}/`.
-    *   Prediction outputs are saved in `data/05_inference_output/{batch_id}/`.
-    *   Logs are stored in `logs/`.
+*   **Evaluation Results:** Metrics and test predictions are stored in `data/04_evaluate/{run_id}/`.
+*   **Prediction:**
+    *   Default input images should be placed in `data/05_predict/inference_input_default_dataset/`.
+    *   Custom batch inputs can be placed in `data/05_predict/{run_id}/{batch_id}/inference_input/`.
+    *   Prediction outputs are saved in `data/05_predict/{run_id}/{batch_id}/inference_output/`.
+    *   If no custom batch input exists, the system will use the default dataset.
+*   **Logs:** Logs are stored in `logs/`.
 
 **Note:** The `data/`, `models/`, `results/`, and `logs/` directories are ignored by Git (except for `data/.gitkeep`). Ensure the raw data is obtained and placed correctly.
 
@@ -87,10 +89,10 @@ The metadata is generated directly from the model class through its `get_metadat
     python main.py ingest
     python main.py conform # Creates data/02_conformed_to_imagefolder/run_1/
     python main.py train --run-id run_1 # Trains using run_1 data, saves model to data/03_train_model/run_1/mobilenetv3/
-    python main.py evaluate --run-id run_1 # Evaluates model run_1 using test data
+    python main.py evaluate --run-id run_1 # Evaluates model run_1 using test data, saves results to data/04_evaluate/run_1/
     
-    # Example: Run prediction on new images (assuming images are in data/04_inference_input/batch_1/)
-    # Place your new JPEG images in data/04_inference_input/batch_1/
-    python main.py predict --run-id run_1 --batch-id batch_1 # Uses model run_1
+    # Example: Run prediction on new images
+    # Place your new JPEG images in data/05_predict/inference_input_default_dataset/
+    python main.py predict --run-id run_1 # Uses model run_1, saves results to data/05_predict/run_1/inference_output/
     ```
     Use `python main.py --help` to see all available commands and options.

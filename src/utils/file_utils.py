@@ -155,21 +155,44 @@ def get_next_run_id(
 
 def get_next_batch_id(
     config: dict, # Pass the loaded config dictionary
+    run_id: str,  # The run ID to associate the batch with
     batch_id_prefix: str = 'batch_'
 ) -> str:
     """
-    Determines the next sequential batch ID based on existing directories
-    in the inference input directory.
+    Determines the next sequential batch ID based on existing batch directories
+    for a specific run.
 
     Args:
         config (dict): The loaded configuration dictionary containing base paths.
+        run_id (str): The run ID to associate the batch with.
         batch_id_prefix (str): The prefix for batch ID directories (e.g., 'batch_').
 
     Returns:
         str: The next sequential batch ID (e.g., 'batch_1', 'batch_2').
     """
-    inference_input_dir = Path(config.get('inference_input_dir', 'data/04_inference_input'))
-    return _get_next_id(inference_input_dir, batch_id_prefix)
+    predict_dir = Path(config.get('predict_dir', 'data/05_predict'))
+    run_batches_dir = predict_dir / run_id
+    
+    # If the run directory doesn't exist yet, first batch will be batch_1
+    if not run_batches_dir.exists():
+        return f"{batch_id_prefix}1"
+    
+    # Find the highest existing batch number
+    max_id = 0
+    pattern = re.compile(rf"^{batch_id_prefix}(\d+)$")
+    
+    for item in run_batches_dir.iterdir():
+        if item.is_dir():
+            match = pattern.match(item.name)
+            if match:
+                current_id = int(match.group(1))
+                if current_id > max_id:
+                    max_id = current_id
+
+    next_id_num = max_id + 1
+    next_id_str = f"{batch_id_prefix}{next_id_num}"
+    logger.info(f"Determined next batch ID for run '{run_id}': {next_id_str}")
+    return next_id_str
 
 
 # Example usage (optional)

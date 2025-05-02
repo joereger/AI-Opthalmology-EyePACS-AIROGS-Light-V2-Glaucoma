@@ -4,9 +4,11 @@
 data_dir: data
 raw_data_dir: data/01_raw/eyepac-light-v2-512-jpg
 conformed_data_dir: data/02_conformed_to_imagefolder
-inference_input_dir: data/04_inference_input
-inference_output_dir: data/05_inference_output
-results_dir: results/mobilenetv3
+train_model_dir: data/03_train_model
+evaluate_dir: data/04_evaluate
+predict_dir: data/05_predict
+predict_default_input_dir: data/05_predict/inference_input_default_dataset
+results_dir: results/mobilenetv3  # Legacy path, some code may still use this
 log_dir: logs
 training_log_dir: logs/training/mobilenetv3
 

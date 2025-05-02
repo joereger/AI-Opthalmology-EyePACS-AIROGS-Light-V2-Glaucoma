@@ -144,11 +144,12 @@ def run_phase(config: Dict[str, Any], run_id: str) -> bool:
         model_name = config.get('model_name', 'mobilenetv3')
         
         # Use data/03_train_model directory structure for model loading
-        model_base_dir = Path('data/03_train_model')
+        model_base_dir = Path(config.get('train_model_dir', 'data/03_train_model'))
         model_path = model_base_dir / run_id / model_name / 'best_model.pth'
         
-        results_base_dir = Path(config.get('results_dir', 'results/mobilenetv3'))
-        results_run_dir = results_base_dir / run_id
+        # New output path in data/04_evaluate
+        evaluate_dir = Path(config.get('evaluate_dir', 'data/04_evaluate'))
+        results_run_dir = evaluate_dir / run_id
         metrics_save_path = results_run_dir / 'evaluation_metrics.json'
         predictions_save_path = results_run_dir / 'test_predictions.csv'
 

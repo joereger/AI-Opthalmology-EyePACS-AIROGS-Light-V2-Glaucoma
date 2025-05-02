@@ -165,10 +165,11 @@ def evaluate(ctx, run_id: Optional[str]):
 
 @main_cli.command()
 @click.option('--run-id', default=None, help='Specify the run ID of the trained model to use. If None, the latest existing run ID is used.')
-@click.option('--batch-id', default=None, help='Specify the batch ID for input/output. If None, the next sequential ID is used.')
 @click.pass_context
-def predict(ctx, run_id: Optional[str], batch_id: Optional[str]):
-    """Phase 05: Predict on new images using a trained model."""
+def predict(ctx, run_id: Optional[str]):
+    """Phase 05: Predict on new images using a trained model.
+    
+    Images should be placed in data/05_predict/inference_input_default_dataset/"""
     logger.info("Executing Phase 05: Predict")
     # Load global config merged with phase-specific config
     try:
@@ -190,7 +191,7 @@ def predict(ctx, run_id: Optional[str], batch_id: Optional[str]):
     # Dynamically import the predict module only when needed
     predict_module = import_phase("phase05_predict")
     
-    success = predict_module.run_phase(config, run_id=run_id, batch_id=batch_id)
+    success = predict_module.run_phase(config, run_id=run_id)
     if not success:
         ctx.fail("Phase 05: Predict failed. Check logs.")
     logger.info("Phase 05: Predict completed successfully.")

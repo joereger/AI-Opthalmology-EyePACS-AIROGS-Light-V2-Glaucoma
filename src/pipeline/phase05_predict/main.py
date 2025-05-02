@@ -141,24 +141,51 @@ def run_phase(config: Dict[str, Any], run_id: str, batch_id: Optional[str] = Non
     try:
         # --- Determine Batch ID ---
         if batch_id is None:
-            batch_id = get_next_batch_id(config)
+            batch_id = get_next_batch_id(config, run_id)
             logger.info(f"No batch_id provided, determined next batch_id: {batch_id}")
         else:
-             logger.info(f"Using provided batch_id: {batch_id}")
+            logger.info(f"Using provided batch_id: {batch_id}")
 
         # --- Configuration & Paths ---
         num_classes = config.get('num_classes', 2)
         model_name = config.get('model_name', 'mobilenetv3')
         
         # Use data/03_train_model directory structure for model loading
-        model_base_dir = Path('data/03_train_model')
+        model_base_dir = Path(config.get('train_model_dir', 'data/03_train_model'))
         model_path = model_base_dir / run_id / model_name / 'best_model.pth'
         
-        inference_input_base_dir = Path(config.get('inference_input_dir', 'data/04_inference_input'))
-        inference_input_dir = inference_input_base_dir / batch_id
-        inference_output_base_dir = Path(config.get('inference_output_dir', 'data/05_inference_output'))
-        inference_output_dir = inference_output_base_dir / batch_id
+        # New directory structure for prediction
+        predict_dir = Path(config.get('predict_dir', 'data/05_predict'))
+        
+        # Custom batch input directory - if it exists
+        custom_input_dir = predict_dir / run_id / batch_id / 'inference_input'
+        
+        # Default input dataset location (fallback)
+        predict_default_input_dir = Path(config.get('predict_default_input_dir', 
+                                            'data/05_predict/inference_input_default_dataset'))
+        
+        # Output directory structure
+        inference_output_dir = predict_dir / run_id / batch_id / 'inference_output'
         predictions_save_path = inference_output_dir / 'predictions.csv'
+        
+        # Create output directory
+        ensure_dir_exists(inference_output_dir)
+        
+        # Determine which input directory to use
+        if custom_input_dir.exists() and any(custom_input_dir.iterdir()):
+            # Use custom batch input if it exists and has files
+            inference_input_dir = custom_input_dir
+            logger.info(f"Using custom input directory: {inference_input_dir}")
+        elif predict_default_input_dir.exists() and any(predict_default_input_dir.iterdir()):
+            # If no custom input, use default dataset
+            inference_input_dir = predict_default_input_dir
+            logger.info(f"No custom input found. Using default dataset: {inference_input_dir}")
+        else:
+            # No input data found
+            logger.error(f"No input data found. Please put images in either: \n"
+                        f"1. Custom batch input: {custom_input_dir}\n"
+                        f"2. Default dataset: {predict_default_input_dir}")
+            return False
         
         # Use batch size from config, default to 1 for inference if not specified
         # Larger batch sizes can speed up inference if resources allow
