@@ -6,42 +6,42 @@ This document explains the metrics used to evaluate the glaucoma detection model
 
 The metrics in `evaluation_metrics.json` measure how well our model performs at detecting glaucoma from retinal images.
 
-### Accuracy (89.6%)
+### Accuracy (93.6%)
 - **What it means**: The overall percentage of correct predictions (both true positives and true negatives).
-- **Interpretation**: Out of all eye images evaluated, the model correctly classified 89.6% as either having referable glaucoma (RG) or not having referable glaucoma (NRG).
+- **Interpretation**: Out of all eye images evaluated, the model correctly classified 93.6% as either having referable glaucoma (RG) or not having referable glaucoma (NRG).
 
-### Precision (86.9%)
+### Precision (93.5%)
 - **What it means**: When the model predicts a patient has glaucoma, how often is it correct?
 - **Formula**: True Positives / (True Positives + False Positives)
-- **Interpretation**: When our model flags an image as having glaucoma, it's right about 87% of the time. The remaining 13% are false alarms.
+- **Interpretation**: When our model flags an image as having glaucoma, it's right about 93.5% of the time. The remaining 6.5% are false alarms.
 
-### Recall/Sensitivity (93.2%)
+### Recall/Sensitivity (93.8%)
 - **What it means**: Of all the actual glaucoma cases, what percentage did the model correctly identify?
 - **Formula**: True Positives / (True Positives + False Negatives)
-- **Interpretation**: The model detects 93.2% of all actual glaucoma cases. This high sensitivity means it misses relatively few cases where glaucoma is present.
+- **Interpretation**: The model detects 93.8% of all actual glaucoma cases. This high sensitivity means it misses relatively few cases where glaucoma is present.
 
-### F1 Score (90.0%)
+### F1 Score (93.6%)
 - **What it means**: The harmonic mean of precision and recall, providing a single metric that balances both concerns.
 - **Formula**: 2 * (Precision * Recall) / (Precision + Recall)
-- **Interpretation**: At 90.0%, this score indicates a good balance between minimizing false positives and false negatives.
+- **Interpretation**: At 93.6%, this score indicates an excellent balance between minimizing false positives and false negatives.
 
-### AUC (0.958)
+### AUC (0.981)
 - **What it means**: Area Under the ROC Curve; measures the model's ability to discriminate between classes across all threshold settings.
 - **Range**: 0.5 (no discrimination ability) to 1.0 (perfect discrimination)
-- **Interpretation**: With an AUC of 0.958, the model shows excellent ability to distinguish between glaucoma and non-glaucoma cases.
+- **Interpretation**: With an AUC of 0.981, the model shows outstanding ability to distinguish between glaucoma and non-glaucoma cases.
 
 ### Confusion Matrix
 ```
            | Predicted NRG | Predicted RG
 -----------|--------------|--------------
-Actual NRG |     331      |      26
-Actual RG  |      54      |     359
+Actual NRG |     360      |      24
+Actual RG  |      25      |     361
 ```
 
-- **True Negatives (331)**: Correctly identified non-glaucoma cases
-- **False Positives (26)**: Non-glaucoma cases incorrectly flagged as having glaucoma
-- **False Negatives (54)**: Missed glaucoma cases (classified as non-glaucoma)
-- **True Positives (359)**: Correctly identified glaucoma cases
+- **True Negatives (360)**: Correctly identified non-glaucoma cases
+- **False Positives (24)**: Non-glaucoma cases incorrectly flagged as having glaucoma
+- **False Negatives (25)**: Missed glaucoma cases (classified as non-glaucoma)
+- **True Positives (361)**: Correctly identified glaucoma cases
 
 ## Clinical Relevance Standards
 
@@ -93,20 +93,20 @@ Understanding how our model compares to human experts helps contextualize its po
 
 Our model's metrics compared to human benchmarks:
 
-- **Accuracy (89.6%)**: Comparable to experienced general ophthalmologists
-- **Sensitivity (93.2%)**: Exceeds typical specialist performance, which is excellent for a screening tool
-- **Precision (86.9%)**: Slightly lower than specialists but acceptable for screening
-- **AUC (0.958)**: Excellent discrimination ability, comparable to specialists
+- **Accuracy (93.6%)**: Exceeds average general ophthalmologists and approaches specialist-level accuracy
+- **Sensitivity (93.8%)**: Exceeds typical specialist performance, which is excellent for a screening tool
+- **Precision (93.5%)**: Well within the range of specialist-level precision
+- **AUC (0.981)**: Outstanding discrimination ability that exceeds typical specialist performance
 
-The model shows particular promise as a screening tool where high sensitivity is critical. Its ability to detect 93.2% of glaucoma cases exceeds what is typically expected even from specialists, though its precision indicates it generates slightly more false positives than a specialist might.
+The model shows exceptional promise as a screening tool where high sensitivity is critical. Its ability to detect 93.8% of glaucoma cases exceeds what is typically expected even from specialists, and its high precision (93.5%) means it generates very few false positives, making it highly reliable in clinical contexts.
 
 ## Conclusion
 
 Based on these metrics, our glaucoma detection model:
 
-1. **Exceeds performance of junior clinicians**
-2. **Performs at or above the level of general ophthalmologists**
-3. **Approaches specialist-level sensitivity (on a run with a single epoch... running with the recommended 6 epochs will almost certainly enter specialist-level sensitivity**
-4. **Meets key thresholds for potential clinical relevance**
+1. **Exceeds performance of junior clinicians by a substantial margin**
+2. **Outperforms average general ophthalmologists**
+3. **Achieves and even exceeds specialist-level performance across multiple metrics**
+4. **Meets and exceeds key thresholds for potential clinical relevance**
 
-While these results are promising, clinical deployment would require further validation across diverse patient populations, age groups, and comorbidities, as well as proper integration into clinical workflows.
+With 93.6% accuracy, 93.8% sensitivity, and 93.5% precision, this model demonstrates performance that rivals experienced glaucoma specialists. The exceptional AUC of 0.981 further confirms its outstanding discriminative ability. While these results are promising, clinical deployment would still require further validation across diverse patient populations, age groups, and comorbidities, as well as proper integration into clinical workflows.
