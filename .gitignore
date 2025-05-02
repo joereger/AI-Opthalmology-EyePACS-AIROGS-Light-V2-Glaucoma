@@ -40,6 +40,7 @@ data/03_train_model/*
 # But ignore all actual content inside data/04_evaluate
 data/04_evaluate/*
 !data/04_evaluate/.gitkeep
+!data/04_evaluate/explanation_of_metrics.md
 
 # data/05_predict and its default dataset directory
 !data/05_predict/
