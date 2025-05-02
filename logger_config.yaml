@@ -1,0 +1,49 @@
+# Logging Configuration using dictConfig format
+
+version: 1
+disable_existing_loggers: False
+
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  detailed:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+  file_debug:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/debug.log # Log file path relative to project root
+    maxBytes: 10485760 # 10MB
+    backupCount: 5
+    encoding: utf8
+  file_training: # Specific handler for training logs if needed, otherwise use root file handler
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: simple
+    filename: logs/training_default.log # Default training log, phase 3 might use specific file
+    maxBytes: 10485760 # 10MB
+    backupCount: 5
+    encoding: utf8
+
+loggers:
+  # Specific loggers can be defined for different modules/phases
+  # Example:
+  # src.pipeline.03_train:
+  #   level: DEBUG
+  #   handlers: [console, file_training] # Use specific training handler
+  #   propagate: no # Prevent messages going to root logger handlers too
+  __main__: # Logger for the main script entry point
+    level: INFO
+    handlers: [console, file_debug]
+    propagate: yes
+
+root: # Root logger configuration
+  level: INFO
+  handlers: [console, file_debug] # Default handlers for all modules unless overridden

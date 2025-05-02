@@ -1,0 +1,7 @@
+torch
+torchvision
+click
+PyYAML
+scikit-learn
+pandas
+Pillow
