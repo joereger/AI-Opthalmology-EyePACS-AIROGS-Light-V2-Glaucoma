@@ -1,0 +1,16 @@
+# Configuration for Phase 06: Visualize GradCAM
+
+# Output directory
+visualize_gradcam_dir: data/06_visualize_gradcam
+
+# GradCAM settings
+gradcam_layer_name: "features[-1]"  # Target the last layer in features
+overlay_alpha: 0.6  # Transparency for overlaid heatmaps
+colormap: "jet"  # Matplotlib colormap for heatmaps
+interpolation_method: "bilinear"  # Method for resizing heatmaps to match original image
+
+# Report settings
+report_title: "Grad-CAM Visualization Report"
+report_description: "Visual explanations showing which regions of the retinal images influenced the model's glaucoma detection decisions."
+image_size_in_report: 512  # Width/height of images in the report (px)
+thumbnail_size: 128  # Size of thumbnails in the report (px)

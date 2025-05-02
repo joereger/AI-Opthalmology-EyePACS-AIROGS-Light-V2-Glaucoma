@@ -38,8 +38,7 @@ def evaluate_model(
     Returns:
         A tuple containing:
         - Dict[str, Any]: Dictionary of calculated metrics (accuracy, precision, recall, f1, auc, confusion_matrix).
-        - pd.DataFrame: DataFrame with predictions (image_id/path, true_label, predicted_label, probability_NRG, probability_RG).
-                       Note: Getting image paths requires a custom Dataset or modification. Using indices for now.
+        - pd.DataFrame: DataFrame with predictions (image_path, predicted_label, probability_NRG, probability_RG, true_label, true_label_idx, predicted_label_idx).
     """
     model.eval()  # Set model to evaluation mode
     logger.info("Starting model evaluation on the test set...")
@@ -47,16 +46,26 @@ def evaluate_model(
     all_preds = []
     all_labels = []
     all_probs = [] # Store probabilities for AUC calculation
-    # all_image_paths = [] # TODO: Implement if image paths are needed in output
+    all_image_paths = [] # Store image paths for output
+    all_indices = []  # Store indices for mapping to dataset samples later
 
     with torch.no_grad():
+        batch_idx = 0
         for inputs, labels in dataloader:
+            # Track batch indices for later image path mapping
+            batch_size = inputs.size(0)
+            indices = list(range(batch_idx * dataloader.batch_size, 
+                                batch_idx * dataloader.batch_size + batch_size))
+            all_indices.extend(indices)
+            
+            # For now, just use placeholder names - we'll replace them after inference
+            for i in range(batch_size):
+                all_image_paths.append(f"placeholder_{indices[i]}.jpg")
+            
+            # Move data to device
             inputs = inputs.to(device)
             labels = labels.to(device)
-            # if hasattr(dataloader.dataset, 'samples'): # Get image paths if available
-            #     # This requires knowing the batch indices, which is complex with DataLoader shuffling/workers
-            #     # For simplicity, we'll omit exact paths for now.
-            #     pass 
+            batch_idx += 1
 
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
@@ -67,7 +76,6 @@ def evaluate_model(
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
             all_probs.extend(probabilities.cpu().numpy())
-            # all_image_paths.extend(...) # Add paths if retrieved
 
     logger.info("Inference complete. Calculating metrics...")
 
@@ -107,19 +115,36 @@ def evaluate_model(
     }
     
     logger.info(f"Metrics calculated: {metrics}")
-
-    # Create predictions DataFrame
-    predictions_df = pd.DataFrame({
-        # 'image_path': all_image_paths, # Add if paths are collected
-        'true_label_idx': all_labels,
-        'predicted_label_idx': all_preds,
-        f'probability_{class_names[0]}': [p[0] for p in all_probs], # Assumes class 0 is NRG
-        f'probability_{class_names[1]}': [p[1] for p in all_probs]  # Assumes class 1 is RG
-    })
-    # Map indices to names
+    
+    # Now replace the placeholder image paths with the actual file names
+    real_image_paths = []
+    if hasattr(dataloader.dataset, 'samples'):
+        for idx in all_indices:
+            if idx < len(dataloader.dataset.samples):
+                img_path, _ = dataloader.dataset.samples[idx]
+                real_image_paths.append(Path(img_path).name)
+            else:
+                # Fallback in case of any index errors
+                real_image_paths.append(f"unknown_image_{idx}.jpg")
+    else:
+        # If we couldn't get the samples, keep the placeholders
+        real_image_paths = all_image_paths
+    
+    # Now use these real image paths in the DataFrame
+    # Create predictions DataFrame with standardized format (matching Phase 05)
     idx_to_class = {v: k for k, v in dataloader.dataset.class_to_idx.items()}
-    predictions_df['true_label'] = predictions_df['true_label_idx'].map(idx_to_class)
-    predictions_df['predicted_label'] = predictions_df['predicted_label_idx'].map(idx_to_class)
+    
+    # Order columns to match standardized format across phases:
+    # 1. image_path, 2. predicted_label, 3-4. probabilities, 5. true_label, 6-7. label indices
+    predictions_df = pd.DataFrame({
+        'image_path': real_image_paths,
+        'predicted_label': [idx_to_class[pred] for pred in all_preds],
+        f'probability_{class_names[0]}': [p[0] for p in all_probs], # Assumes class 0 is NRG
+        f'probability_{class_names[1]}': [p[1] for p in all_probs],  # Assumes class 1 is RG
+        'true_label': [idx_to_class[label] for label in all_labels],
+        'true_label_idx': all_labels,
+        'predicted_label_idx': all_preds
+    })
 
 
     return metrics, predictions_df
@@ -151,7 +176,7 @@ def run_phase(config: Dict[str, Any], run_id: str) -> bool:
         evaluate_dir = Path(config.get('evaluate_dir', 'data/04_evaluate'))
         results_run_dir = evaluate_dir / run_id
         metrics_save_path = results_run_dir / 'evaluation_metrics.json'
-        predictions_save_path = results_run_dir / 'test_predictions.csv'
+        predictions_save_path = results_run_dir / 'predictions.csv'  # Standardized filename across phases
 
         ensure_dir_exists(results_run_dir)
 

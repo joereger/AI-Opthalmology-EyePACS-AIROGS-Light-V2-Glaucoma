@@ -27,6 +27,7 @@ PHASE_CONFIGS = {
     'train': 'src/pipeline/phase03_train_model/config.yaml',
     'evaluate': 'src/pipeline/phase04_evaluate/config.yaml',
     'predict': 'src/pipeline/phase05_predict/config.yaml',
+    'visualize_gradcam': 'src/pipeline/phase06_visualize_gradcam/config.yaml',
 }
 
 # Setup root logger temporarily for CLI setup messages
@@ -195,6 +196,77 @@ def predict(ctx, run_id: Optional[str]):
     if not success:
         ctx.fail("Phase 05: Predict failed. Check logs.")
     logger.info("Phase 05: Predict completed successfully.")
+
+
+@main_cli.command()
+@click.option('--run-id', default=None, help='Specify the run ID of the model/evaluation to visualize. If None, the latest existing run ID is used.')
+@click.option('--batch-id', default=None, help='For prediction visualizations: batch ID to visualize. Only needed when source is "predict".')
+@click.option('--source', type=click.Choice(['evaluate', 'predict']), default='evaluate', 
+              help='Source of the predictions to visualize (evaluate or predict results).')
+@click.option('--samples', type=int, default=None, 
+              help='Number of random samples to visualize. If not specified, all available samples are used.')
+@click.option('--filter', 'filter_type', type=click.Choice(['all', 'correct', 'incorrect']), default='all', 
+              help='Filter which predictions to visualize. Only applies to evaluation visualizations.')
+@click.pass_context
+def gradcam(ctx, run_id: Optional[str], batch_id: Optional[str], source: str, samples: Optional[int], filter_type: str):
+    """Phase 06: Generate GradCAM visualizations to explain model predictions.
+    
+    This phase creates visual explanations showing which regions of the retinal images 
+    most influenced the model's glaucoma detection decisions.
+    
+    Examples:
+        # Visualize evaluation results
+        python main.py gradcam --run-id run_1
+        
+        # Visualize only incorrect predictions from evaluation
+        python main.py gradcam --run-id run_1 --filter incorrect
+        
+        # Visualize prediction results
+        python main.py gradcam --run-id run_1 --source predict --batch-id batch_1
+        
+        # Visualize only 10 random samples
+        python main.py gradcam --run-id run_1 --samples 10
+    """
+    logger.info(f"Executing Phase 06: Visualize GradCAM ({source} source)")
+    
+    # Load global config merged with phase-specific config
+    try:
+        config = load_config(phase_config_path=PHASE_CONFIGS['visualize_gradcam'])
+        if not config:
+            ctx.fail("Failed to load configuration for GradCAM visualization phase.")
+    except Exception as e:
+        ctx.fail(f"Error loading GradCAM visualization configuration: {e}")
+    
+    # If no run_id is provided, use the latest existing run
+    if run_id is None:
+        run_id = get_latest_run_id(config)
+        if run_id is None:
+            logger.error("No existing run IDs found. Please run the 'train' phase first to create a model.")
+            ctx.fail("No existing run IDs found.")
+        else:
+            logger.info(f"No run-id specified. Using latest run: {run_id}")
+    
+    # Validate batch_id requirement for 'predict' source
+    if source == 'predict' and batch_id is None:
+        logger.info("No batch-id specified for predict source visualization. Using default batch location.")
+    
+    # Dynamically import the gradcam visualization module
+    gradcam_module = import_phase("phase06_visualize_gradcam")
+    
+    # Run the phase
+    success = gradcam_module.run_phase(
+        config, 
+        run_id=run_id, 
+        batch_id=batch_id, 
+        source=source,
+        samples=samples,
+        filter_type=filter_type
+    )
+    
+    if not success:
+        ctx.fail("Phase 06: Visualize GradCAM failed. Check logs.")
+    
+    logger.info(f"Phase 06: Visualize GradCAM completed successfully. View results in data/06_visualize_gradcam/{run_id}/{source}/report.html")
 
 
 # Note: main.py will import main_cli and run it.

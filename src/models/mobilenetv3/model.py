@@ -1,8 +1,10 @@
 import logging
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 from torchvision.models import MobileNet_V3_Large_Weights
+import numpy as np
 from src.models.base_model import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -107,6 +109,113 @@ class MobileNetV3Model(BaseModel):
         })
         
         return metadata
+    
+    def get_gradcam(self, image, target_layer_name=None, target_class=None):
+        """
+        Generate Grad-CAM visualization for the specified image.
+        
+        Args:
+            image: Input tensor (already preprocessed) with shape [1, C, H, W]
+            target_layer_name: Name or index of the layer to visualize (default: last conv layer)
+            target_class: Class index to visualize (default: predicted class)
+        
+        Returns:
+            numpy array: Grad-CAM heatmap normalized to [0,1] with shape [H, W]
+        """
+        # Ensure model is in eval mode
+        self.eval()
+        
+        # Convert string layer name to actual module if needed
+        target_layer = None
+        if target_layer_name is None:
+            # Default to last convolutional layer in the features
+            target_layer = self.features[-1]
+        elif isinstance(target_layer_name, str):
+            if target_layer_name.startswith("features[") and target_layer_name.endswith("]"):
+                # Extract index from string like "features[12]"
+                try:
+                    idx = int(target_layer_name[9:-1])
+                    target_layer = self.features[idx]
+                except (IndexError, ValueError) as e:
+                    logger.error(f"Invalid layer index in {target_layer_name}: {e}")
+                    raise ValueError(f"Invalid layer name: {target_layer_name}")
+            elif target_layer_name == "features[-1]":
+                target_layer = self.features[-1]
+            else:
+                raise ValueError(f"Unsupported layer name format: {target_layer_name}")
+        elif isinstance(target_layer_name, int):
+            # If target_layer_name is an integer index
+            try:
+                target_layer = self.features[target_layer_name]
+            except IndexError:
+                raise ValueError(f"Invalid layer index: {target_layer_name}")
+        
+        if target_layer is None:
+            raise ValueError("Could not resolve target layer")
+        
+        # Register hooks to get activations and gradients
+        activations = None
+        gradients = None
+        
+        def save_activation(module, input, output):
+            nonlocal activations
+            activations = output.detach()
+        
+        def save_gradient(module, grad_input, grad_output):
+            nonlocal gradients
+            gradients = grad_output[0].detach()
+        
+        # Register hooks
+        handle1 = target_layer.register_forward_hook(save_activation)
+        handle2 = target_layer.register_full_backward_hook(save_gradient)
+        
+        try:
+            # Ensure image has batch dimension
+            if len(image.shape) == 3:
+                image = image.unsqueeze(0)
+            
+            # Forward pass
+            with torch.set_grad_enabled(True):
+                # Get model output (ensure we create graph)
+                output = self(image)
+                
+                # If target class not specified, use predicted class
+                if target_class is None:
+                    target_class = output.argmax(dim=1).item()
+                
+                # Zero all gradients
+                self.zero_grad()
+                
+                # Create one-hot encoding for backprop
+                one_hot = torch.zeros_like(output)
+                one_hot[0, target_class] = 1
+                
+                # Backward pass
+                output.backward(gradient=one_hot)
+            
+            # Calculate Grad-CAM
+            # Global average pooling the gradients
+            weights = gradients.mean(dim=(2, 3), keepdim=True)  # [1, C, 1, 1]
+            
+            # Compute weighted activations and apply ReLU
+            cam = torch.sum(weights * activations, dim=1, keepdim=True)  # [1, 1, H, W]
+            cam = F.relu(cam)  # Only keep positive attributions
+            
+            # Normalize heatmap to [0, 1]
+            cam_min = cam.min()
+            cam_max = cam.max()
+            if cam_max > cam_min:  # Avoid division by zero
+                cam = (cam - cam_min) / (cam_max - cam_min + 1e-8)
+            
+            # Convert to numpy
+            cam = cam.squeeze().cpu().numpy()  # [H, W]
+            
+            return cam
+            
+        finally:
+            # Clean up
+            handle1.remove()
+            handle2.remove()
 
 def get_model(num_classes: int = 2, pretrained: bool = True) -> nn.Module:
     """

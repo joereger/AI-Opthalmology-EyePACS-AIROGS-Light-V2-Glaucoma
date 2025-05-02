@@ -28,3 +28,19 @@ class BaseModel(nn.Module):
             metadata.update(training_params)
             
         return metadata
+    
+    def get_gradcam(self, image, target_layer_name=None, target_class=None):
+        """
+        Generate Grad-CAM visualization for the specified image.
+        
+        This is a base implementation that should be overridden by specific model classes.
+        
+        Args:
+            image: Input tensor (already preprocessed)
+            target_layer_name: Name or index of the layer to visualize
+            target_class: Class index to visualize (default: predicted class)
+        
+        Returns:
+            numpy array: Grad-CAM heatmap normalized to [0,1]
+        """
+        raise NotImplementedError("Subclasses must implement get_gradcam")

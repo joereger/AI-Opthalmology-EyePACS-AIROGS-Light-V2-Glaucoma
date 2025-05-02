@@ -17,6 +17,7 @@ The system operates through a sequential multi-phase pipeline:
 3.  **Phase 03: Train Model:** Trains the MobileNetV3 model using the copied `ImageFolder` data and saves both the model weights and metadata.
 4.  **Phase 04: Evaluate:** Evaluates the trained model on the copied test set.
 5.  **Phase 05: Predict:** Uses a trained model to predict Glaucoma presence (NRG/RG) on new JPEG images.
+6.  **Phase 06: Visualize GradCAM:** Generates visual explanations showing which regions of retinal images most influenced the model's decisions.
 
 Each phase can be executed independently via the command-line interface.
 
@@ -31,6 +32,10 @@ Each phase can be executed independently via the command-line interface.
     *   Custom batch inputs can be placed in `data/05_predict/{run_id}/{batch_id}/inference_input/`.
     *   Prediction outputs are saved in `data/05_predict/{run_id}/{batch_id}/inference_output/`.
     *   If no custom batch input exists, the system will use the default dataset.
+*   **GradCAM Visualizations:** Grad-CAM heatmaps showing which regions of the images influenced the model's decisions are saved in `data/06_visualize_gradcam/{run_id}/`. This includes:
+    *   Original images, heatmaps, and overlays saved as PNG files
+    *   Interactive HTML reports with filtering options
+    *   For evaluation results: separate directories for correct and incorrect predictions
 *   **Logs:** Logs are stored in `logs/`.
 
 **Note:** The `data/`, `models/`, `results/`, and `logs/` directories are ignored by Git (except for `data/.gitkeep`). Ensure the raw data is obtained and placed correctly.
@@ -94,5 +99,10 @@ The metadata is generated directly from the model class through its `get_metadat
     # Example: Run prediction on new images
     # Place your new JPEG images in data/05_predict/inference_input_default_dataset/
     python main.py predict --run-id run_1 # Uses model run_1, saves results to data/05_predict/run_1/inference_output/
+    
+    # Example: Generate GradCAM visualizations
+    python main.py gradcam --run-id run_1  # Visualize evaluation results
+    python main.py gradcam --run-id run_1 --filter incorrect  # Only show incorrect predictions
+    python main.py gradcam --run-id run_1 --source predict  # Visualize prediction results
     ```
     Use `python main.py --help` to see all available commands and options.
