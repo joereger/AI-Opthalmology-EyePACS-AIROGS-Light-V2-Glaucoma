@@ -8,3 +8,4 @@ Pillow
 numpy
 matplotlib>=3.5.0
 opencv-python>=4.5.5
+tqdm

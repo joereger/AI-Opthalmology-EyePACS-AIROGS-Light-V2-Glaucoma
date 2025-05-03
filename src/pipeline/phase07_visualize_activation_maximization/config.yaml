@@ -1,0 +1,63 @@
+# Configuration for Phase 07: Visualize Activation Maximization
+
+# --- Input/Output ---
+
+# Label for the positive (e.g., glaucoma) class used for importance calculation
+positive_class_label: 1 
+
+# Base output directory for this phase. A run-specific subfolder (e.g., run_1) 
+# will be created automatically inside this directory.
+output_dir_base: "data/07_visualize_activation_maximization" 
+
+# --- Model Artifact ---
+# Subdirectory within the source run's directory where model artifacts are stored
+# Example: 'mobilenetv3' if paths are like '.../run_1/mobilenetv3/best_model.pth'
+model_artifact_subdir: "mobilenetv3" 
+
+# --- Target Selection ---
+
+# Target layers and units to visualize
+targets:
+  - layer_name: "features[15]" # Example: A specific conv block's output
+    num_top_units: 5          # Visualize top N channels/neurons based on importance
+    unit_selection_method: "mean_activation_positive_class" # Method to select/rank units
+  - layer_name: "features[-1][0]" # Example: First conv layer in the last block
+    num_top_units: 3
+    unit_selection_method: "mean_activation_positive_class"
+  # Add more layers as needed (e.g., "features[10]", "features[5]")
+
+# --- Activation Maximization Parameters ---
+
+optimization:
+  steps: 256             # Number of optimization steps per feature
+  learning_rate: 0.05    # Learning rate for the input image optimization
+  initial_image: "noise" # "noise" or "mean" (mean requires calculating avg image from data_dir)
+  # image_size is now derived from loaded model metadata
+  regularization:
+    # L2 decay on the image pixels to prevent extreme values
+    l2_decay: 0.001 
+    # Total Variation regularization to encourage smoother images
+    total_variation: 
+      weight: 0.01
+      beta: 2.0 # Exponent for TV norm (typically 1 or 2)
+  # Optional: Apply blurring periodically to reduce high-frequency noise
+  blur_frequency: 4 # Apply blur every N steps (0 to disable)
+  blur_sigma: 0.5   # Sigma for Gaussian blur
+
+# --- Real Example Finding ---
+
+find_real_examples:
+  enabled: true
+  num_examples: 6 # Number of top/bottom examples to save per feature
+  batch_size: 32  # Batch size for processing the dataset
+
+# --- HTML Report Configuration ---
+
+reporting:
+  enabled: true
+  report_filename: "activation_maximization_report.html"
+  # Importance metric used for ranking features in the report
+  # Should match one of the unit_selection_method options if ranking is desired
+  importance_metric: "mean_activation_positive_class" 
+  # Optional CSS styling (can be embedded or linked)
+  css_style: "default" # Using default embedded styles for now

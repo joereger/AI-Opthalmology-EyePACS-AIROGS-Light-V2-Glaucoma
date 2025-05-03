@@ -28,6 +28,7 @@ PHASE_CONFIGS = {
     'evaluate': 'src/pipeline/phase04_evaluate/config.yaml',
     'predict': 'src/pipeline/phase05_predict/config.yaml',
     'visualize_gradcam': 'src/pipeline/phase06_visualize_gradcam/config.yaml',
+    'activation_maximization': 'src/pipeline/phase07_visualize_activation_maximization/config.yaml',
 }
 
 # Setup root logger temporarily for CLI setup messages
@@ -267,6 +268,61 @@ def gradcam(ctx, run_id: Optional[str], batch_id: Optional[str], source: str, sa
         ctx.fail("Phase 06: Visualize GradCAM failed. Check logs.")
     
     logger.info(f"Phase 06: Visualize GradCAM completed successfully. View results in data/06_visualize_gradcam/{run_id}/{source}/report.html")
+
+
+@main_cli.command()
+@click.option('--run-id', default=None, help='Specify the run ID of the model to analyze. If None, the latest existing run ID is used.')
+# Add other relevant options if needed, e.g., overriding specific config values
+@click.pass_context
+def activation_maximization(ctx, run_id: Optional[str]):
+    """Phase 07: Generate Activation Maximization visualizations.
+    
+    This phase analyzes a trained model to generate synthetic images 
+    representing the features learned by specific neurons or channels. 
+    It helps understand what patterns the model focuses on.
+    
+    Example:
+        python main.py activation-maximization --run-id run_1
+    """
+    logger.info("Executing Phase 07: Visualize Activation Maximization")
+    
+    # Load global config merged with phase-specific config
+    try:
+        config = load_config(phase_config_path=PHASE_CONFIGS['activation_maximization'])
+        if not config:
+            ctx.fail("Failed to load configuration for Activation Maximization phase.")
+    except Exception as e:
+        ctx.fail(f"Error loading Activation Maximization configuration: {e}")
+    
+    # If no run_id is provided, use the latest existing run (from training phase)
+    if run_id is None:
+        # Assuming get_latest_run_id uses the 'train_model_dir' from global config if needed
+        run_id = get_latest_run_id(config) 
+        if run_id is None:
+            logger.error("No existing run IDs found. Please run the 'train' phase first to create a model.")
+            ctx.fail("No existing run IDs found.")
+        else:
+            logger.info(f"No run-id specified. Using latest run: {run_id}")
+            
+    # Dynamically import the activation maximization module
+    activation_module = import_phase("phase07_visualize_activation_maximization")
+    
+    # Run the phase - assumes run_phase takes config_path, run_id, and global_config
+    # Logging level is handled by main_cli setup
+    global_config = ctx.obj['CONFIG'] # Get global config from context
+    success = activation_module.run_phase(
+        config_path=PHASE_CONFIGS['activation_maximization'], 
+        run_id=run_id,
+        global_config=global_config # Pass global config
+    )
+    
+    if not success:
+        ctx.fail("Phase 07: Visualize Activation Maximization failed. Check logs.")
+    
+    # Construct potential output path for user info (adjust based on actual output structure)
+    output_base = config.get('output_dir_base', 'data/07_visualize_activation_maximization')
+    # We don't know the exact run_X dir created inside run_phase here, so give general location
+    logger.info(f"Phase 07: Visualize Activation Maximization completed successfully. Check results in {output_base}/run_X/")
 
 
 # Note: main.py will import main_cli and run it.
