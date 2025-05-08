@@ -8,6 +8,23 @@ This project implements a modular, Python-based command-line application for ide
 
 **This is an experimental implementation for learning and demonstration purposes only. It should NOT be used for clinical diagnosis, patient management, or any medical decision-making.**
 
+## Explainable AI with Grad-CAM
+
+This pipeline includes Grad-CAM visualizations (Phase 06) to show which parts of the retina image the model focuses on for its diagnosis. Below is an example comparing the original image with the Grad-CAM overlay highlighting influential regions for an (incorrect) prediction:
+
+<table>
+  <tr>
+    <td align="center">Original Image</td>
+    <td align="center">Grad-CAM Overlay</td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="src/assets/grad-cam-zoom-original.png" alt="Original Fundus Image Example" width="400"></td>
+    <td valign="top"><img src="src/assets/grad-cam-zoom-overlay.png" alt="Grad-CAM Overlay Example" width="400"></td>
+  </tr>
+</table>
+
+--- 
+
 ## Workflow
 
 The system operates through a sequential multi-phase pipeline:
@@ -69,6 +86,31 @@ This metadata serves several purposes:
 4. **Portability**: All information needed to use the model travels with it
 
 The metadata is generated directly from the model class through its `get_metadata()` method, allowing each model type to provide its specific characteristics.
+
+## Results Summary
+
+The trained MobileNetV3 model demonstrates strong performance in detecting referable glaucoma (RG) versus non-referable glaucoma (NRG) on the test set. It achieved an overall accuracy of **93.6%**, with high sensitivity (Recall) of **93.8%** (correctly identifying actual RG cases) and high precision of **93.5%** (correctly identifying predicted RG cases). The Area Under the ROC Curve (AUC) was **0.981**, indicating excellent discriminative ability between the two classes. These metrics suggest performance comparable to or exceeding that of general ophthalmologists and approaching specialist levels for this specific task and dataset, making it a promising candidate for further investigation as a screening aid (subject to rigorous clinical validation). 
+*(Note: Metrics based on `data/04_evaluate/explanation_of_metrics.md`)*
+
+## Visualizations
+
+This pipeline generates several types of visualizations to help understand model behavior:
+
+### Grad-CAM Report (Phase 06)
+
+Phase 06 generates Grad-CAM visualizations highlighting image regions influencing the model's decision. An interactive HTML report allows filtering by class and prediction correctness.
+
+![Grad-CAM Report Screenshot](src/assets/grad-cam-report.png)
+
+### Activation Maximization Report (Phase 07)
+
+Phase 07 generates activation maximization visualizations, showing synthetic patterns that maximally activate specific model features, along with real image examples exhibiting high or low activation for that feature. An interactive HTML report with tabs allows comparison.
+
+![Activation Maximization Report Screenshot](src/assets/activation-maximization-report.png)
+
+*Example Activation Maximization Detail:*
+
+![Activation Maximization Zoom](src/assets/activation-maximization-zoom.png)
 
 ## Setup & Usage
 
