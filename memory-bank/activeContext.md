@@ -1,14 +1,15 @@
 # Active Context: AI Ophthalmology - Glaucoma Detection Pipeline
 
-## Current Work Focus (as of 2025-05-08 ~11:15 AM)
+## Current Work Focus (as of 2025-05-08 ~11:28 AM)
 
--   Initializing the Memory Bank documentation system as requested.
+-   Updating Memory Bank files (`progress.md`, `activeContext.md`) after re-reading Phase 07 code and confirming its current implementation status.
 -   Previously completed tasks involved:
-    -   Scaffolding Phase 07 (Activation Maximization), including `main.py`, `utils.py`, `config.yaml`, and `html_report_generator.py`.
-    -   Integrating Phase 07 into the CLI (`cli.py`).
-    -   Debugging numerous runtime errors (ImportErrors, NameErrors, TypeErrors, incorrect logic) encountered while trying to run the initial Phase 07 scaffolding.
-    -   Refactoring Phase 07 code to correctly handle `run_id`, dynamic data paths, model metadata usage, and report layout based on Phase 06 examples.
-    -   Updating `README.md` with a results summary and visualization screenshots.
+    -   Initializing the Memory Bank system (creating core files).
+    -   Scaffolding Phase 07 (Activation Maximization).
+    -   Integrating Phase 07 into the CLI.
+    -   Debugging runtime errors in Phase 07 setup/integration code.
+    -   Refactoring Phase 07 for correct `run_id` handling, dynamic paths, metadata usage, and HTML report layout/structure.
+    -   Updating `README.md`.
 
 ## Recent Changes / Decisions
 
@@ -23,8 +24,8 @@
 
 ## Next Steps
 
--   Complete the initialization of the Memory Bank by creating `progress.md`.
--   Await further instructions or tasks from the user. The core logic for Phase 07's `perform_activation_maximization` and detailed report generation in `html_report_generator.py` remains largely as placeholders and requires implementation.
+-   Await further instructions or tasks from the user. 
+-   The primary remaining task for Phase 07 is implementing the core optimization logic within the `perform_activation_maximization` function in `utils.py`.
 
 ## Important Patterns / Preferences
 
