@@ -1,3 +1,58 @@
+[THIS FILE IS ONLY TO USED IF YOU'VE BEEN ASKED TO MIGRATE A MEMORY-BANK TO A NEW FORMAT.  OTHERWISE, IGNORE IT]
+
+Hello! Your task is to migrate an existing project from the old, monolithic Memory Bank structure to the new component-based Memory Bank.
+
+### **Phase 0: Understand the Goal**
+
+The primary motivation for this migration is to improve the efficiency and focus of the Memory Bank system. The old, monolithic structure required the LLM to load the entire project context for every task, which becomes inefficient and costly as projects grow.
+
+The new **component-based architecture** mirrors how developers naturally think about complex systems—in terms of distinct components (e.g., "the API," "the admin UI," "the data pipeline"). By structuring the Memory Bank this way, the LLM can load only the context relevant to the specific component being worked on, leading to faster, more accurate, and more focused work. Your goal is to intelligently partition the old, monolithic documentation into this new, more effective structure.
+
+---
+
+### **Phase 1: Understand the Old Structure**
+
+1.  **Read all existing Memory Bank files**: Start by reading `projectbrief.md`, `productContext.md`, `systemPatterns.md`, `techContext.md`, `activeContext.md`, and `progress.md`. You need a full understanding of the project's goals, architecture, and current status.
+2.  **Identify Core Components**: Based on your reading, identify 2-4 high-level, distinct components of the system. A component is a logical unit of the system with a clear boundary and responsibility. Good candidates are "the API server," "the admin dashboard," "the data processing pipeline," etc.
+
+---
+
+### **Phase 2: Execute the Migration**
+
+1.  **Create/Update `.clinerules`**: Overwrite the content of the project's `.clinerules` file with the exact content provided in the section below titled "EMBEDDED .clinerules CONTENT".
+
+2.  **Create `projectSummary.md`**:
+    *   Create a new `memory-bank/projectSummary.md`.
+    *   Synthesize the "Description of the Project" section from the old `projectbrief.md` and `productContext.md`.
+    *   Synthesize the "Technology Context" section from the old `techContext.md`.
+
+3.  **Create `projectComponents.md`**:
+    *   Create a new `memory-bank/projectComponents.md`.
+    *   For each core component you identified in Phase 1, add an entry with a link to its new component file (e.g., `./componentApiServer.md`) and write a one-paragraph summary of its role in the system.
+
+4.  **Create `component<Name>.md` Files**:
+    *   For each component listed in `projectComponents.md`, create its corresponding `memory-bank/component<Name>.md` file.
+    *   Populate each section of the new component file by carefully extracting and synthesizing information from the old memory bank files:
+        *   **Description**: What does this specific component do? (from `projectbrief.md`, `productContext.md`)
+        *   **Key Files**: Identify the most important source code files for this component. List their full paths and a brief description of their role.
+        *   **Technology and Architecture**: What specific technologies, libraries, or architectural patterns does *this component* use? (from `systemPatterns.md`, `techContext.md`)
+        *   **TODO**: What are the next steps or known issues for this component? (from `activeContext.md`)
+        *   **Progress**: Create a reverse-chronological list of the 5 most recent, significant changes made to *this component*. (from `activeContext.md`, `progress.md`)
+
+5.  **Archive Old Files**:
+    *   Do not delete the old files. Instead, rename them by prepending `DELETE-` to each filename. For example, `mv memory-bank/projectbrief.md memory-bank/DELETE-projectbrief.md`.
+    *   Rename all six of the original memory bank files.
+
+---
+
+### **Phase 3: Confirm Completion**
+
+Once all new files are created and the old ones are renamed, the migration is complete.
+
+---
+### EMBEDDED .clinerules CONTENT
+---
+
 # Cline's Memory Bank (Component-Based)
 
 I am Cline, an expert software engineer. My memory resets between sessions, so I rely entirely on this structured Memory Bank to understand the project. I MUST read the relevant Memory Bank files at the start of EVERY task.
